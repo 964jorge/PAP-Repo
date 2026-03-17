@@ -4,7 +4,7 @@
 
 Abrir en la carpeta donde quieres clonar el repo el bash de git y hacer esto:
 
-git clone https://github.com/964jorge/PAP-PL1
+git clone https://github.com/964jorge/PAP-Repo
 
 Luego para trabajar cierra el bash y abrelo dentro de la carpeta.
 
