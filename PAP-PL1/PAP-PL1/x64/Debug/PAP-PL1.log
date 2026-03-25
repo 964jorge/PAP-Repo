@@ -1,9 +1,6 @@
 ﻿  Compiling CUDA source file kernel.cu...
   
   D:\Universidad\Año 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1>"D:\Cuda\v11.8\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "D:\VisualStudio\Program Files\Microsoft Visual Studio\VC\Tools\MSVC\14.29.30133\bin\HostX86\x64" -x cu   -ID:\Cuda\v11.8\include -ID:\Cuda\v11.8\include  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o "D:\Universidad\Año 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1\x64\Debug\kernel.cu.obj" "D:\Universidad\Año 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu" 
-D:\Universidad\A±o 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(18): warning #192-D: unrecognized character escape sequence
-  
-D:\Universidad\A±o 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(18): warning #192-D: unrecognized character escape sequence
-  
   kernel.cu
+D:\Universidad\Año 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(31): warning C4244: 'return': conversión de 'double' a 'float'; posible pérdida de datos
   PAP-PL1.vcxproj -> D:\Universidad\Año 3\Segundo Cuatrimestre\Paradigmas Avanzados de Programacion\Practicas\Cuda\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.exe
