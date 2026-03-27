@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+using namespace std; //Para no tener que poner std:: antes de: vectores, strings, cout, cin, endl, isnan, etc...
 
 
 #include <stdlib.h>
@@ -41,9 +41,9 @@ float parseIntAsFloat(const char* token) {
 
 
 //LECTURA CSV (Se deben pasar la direccion de los vectores donde copiar las columnas)
-void leerCSV(const std::string& ruta,
-    std::vector<float>& arrDelay,
-    std::vector<float>& depDelay,
+void leerCSV(const string& ruta,
+    vector<float>& arrDelay,
+    vector<float>& depDelay,
     int maxFilas) {
 
     FILE* file = fopen(ruta.c_str(), "r"); //Abre el archivo
@@ -97,8 +97,55 @@ void leerCSV(const std::string& ruta,
 
     fclose(file); //Cierro el fichero
 
-    std::cout << "\nFilas cargadas: " << filasLeidas << std::endl;
+    cout << "\nFilas cargadas: " << filasLeidas << endl;
 }
+
+
+//Funcion para la configuracion de los bloques e hilos que se pide aplicar en cada apartado
+void configurarKernel(int N, dim3& blocks, dim3& threads) {
+
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+
+    int maxThreads = prop.maxThreadsPerBlock;
+
+    //int threadsX = (maxThreads < 256) ? maxThreads : 256; //Si queremos limitarlo a 256 descomentar y comentar lo de abajo
+    int threadsX = maxThreads;
+
+    //Configuracion
+    threads = dim3(threadsX);
+    blocks = dim3((N + threadsX - 1) / threadsX);
+
+    //cout << "Threads por bloque: " << threads.x << endl; (En orednador de Jose 1024)
+    //cout << "Numero de bloques: " << blocks.x << endl;
+}
+
+
+
+//Funcion para el apartado 1: Calculo de adelantos u atrasos en la salida:
+__global__ void detectarRetrasos(float* depDelay, int longitud, float umbral) {
+
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (i < longitud && !isnan(depDelay[i])) {
+
+        if (umbral >= 0) {
+            //retraso
+            if (depDelay[i] >= umbral) {
+                printf("- Hilo #%d: Retraso de %.2f minutos\n", i, depDelay[i]);
+            }
+        }
+        else {
+            //adelanto
+            if (depDelay[i] <= umbral) {
+                printf("- Hilo #%d: Adelanto de %.2f minutos\n", i, abs(depDelay[i]));
+            }
+        }
+    }
+
+    //SI ESO AÑADIR ALGO PARA QUE IMPRIMA SI NO SE HAN ENCONTRADO VALORES DENTRO DEL UMBRAL (en el 2 tiene pinta de ser mas facil)
+}
+
 
 
 
@@ -115,10 +162,10 @@ int main()
 
 
     //Vectores que vamos a necesitar
-    std::vector<float> arrDelay;
-    std::vector<float> depDelay;
+    vector<float> arrDelay;
+    vector<float> depDelay;
 
-    int limite = 0;  //Cambiar para acargar mas o menos datos
+    int limite = 0;  //Cambiar para cargar mas o menos datos (0 para cargarlos todos)
 
     if (ruta == "") {
         cout << "\nCargando con ruta por defecto\n";
@@ -148,41 +195,75 @@ int main()
 
         //Switch case sencillo para manejar las 5 opciones posibles
         switch (opcion) {
-        case 1:
-            cout << "\nProcediendo a la ejecucion 1, espere por favor...\n";
+        case 1: {
+
+            float umbral;
+            cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
+            cin >> umbral;
+
+            // Copiar a GPU
+            float* d_depDelay;
+            int N = depDelay.size(); //devuelve el tamaño del vector
+
+            cudaMalloc(&d_depDelay, N * sizeof(float)); //Reservamos la memoria
+            //depDelay.data() nos devuelve el puntero al primer elemento del vector
+            cudaMemcpy(d_depDelay, depDelay.data(), N * sizeof(float), cudaMemcpyHostToDevice);
 
 
+            //Configuracion de bloques e hilos
+            dim3 blocksInGrid;
+            dim3 threadsInBlock;
+
+            configurarKernel(N, blocksInGrid, threadsInBlock); //Llamamos a la funcion de configuracion
+
+            cout << "\nProcediendo a la ejecucion, espere por favor...\n";
+
+
+            //Lanzamos todos los hilos a ejecutar el programa
+            detectarRetrasos <<<blocksInGrid, threadsInBlock>>> (d_depDelay, N, umbral); 
+
+            cudaDeviceSynchronize(); //Esperamos a que todos los hilos terminen
+
+            cudaFree(d_depDelay); //Liberamos la memoria
+
+            break;
+        }
+
+        case 2: {
+            cout << "\nProcediendo a la ejecucion 2, espere por favor...\n";
+            break;
+        }
+
+        case 3: {
+            cout << "\nProcediendo a la ejecucion 3, espere por favor...\n";
+            break;
+        }
+
+        case 4: {
+            cout << "\nProcediendo a la ejecucion 4, espere por favor...\n";
+
+
+            //ESTA FUNCION ES SOLO PARA COMPROBAR, ELIMINAR CUANDO SE QUIERA HACER EL APARTADO 4:
             for (int i = 0; i < 10 && i < arrDelay.size(); i++) {
 
-                std::cout << "Fila " << i << " | ";
+                cout << "Fila " << i << " | ";
 
-                if (std::isnan(arrDelay[i]))
-                    std::cout << "ArrDelay: NAN | ";
+                if (isnan(arrDelay[i]))
+                    cout << "ArrDelay: NAN | ";
                 else
-                    std::cout << "ArrDelay: " << arrDelay[i] << " | ";
+                    cout << "ArrDelay: " << arrDelay[i] << " | ";
 
-                if (std::isnan(depDelay[i]))
-                    std::cout << "DepDelay: NAN | ";
+                if (isnan(depDelay[i]))
+                    cout << "DepDelay: NAN | ";
                 else
-                    std::cout << "DepDelay: " << depDelay[i] << " | ";
+                    cout << "DepDelay: " << depDelay[i] << " | ";
 
-                std::cout << std::endl;
+                cout << endl;
             }
 
 
             break;
-
-        case 2:
-            cout << "\nProcediendo a la ejecucion 2, espere por favor...\n";
-            break;
-
-        case 3:
-            cout << "\nProcediendo a la ejecucion 3, espere por favor...\n";
-            break;
-
-        case 4:
-            cout << "\nProcediendo a la ejecucion 4, espere por favor...\n";
-            break;
+        }
 
         case 5:
             cout << "\nSaliendo...\n";
