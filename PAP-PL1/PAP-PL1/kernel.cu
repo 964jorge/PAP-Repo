@@ -26,7 +26,12 @@ __constant__ float d_umbral_2; //EL umbral en memoria constante que pide el ejer
 //COLUMNAS DEL DATASET QUE VAMOS A LEER (Añadir mas segun se necesite)
 #define COL_ARR_DELAY 12
 #define COL_DEP_DELAY 10
+#define COL_WEATHER_DELAY 13
+#define COL_ARR_TIME 11
+#define COL_DEP_TIME 9
 #define COL_TAIL_NUM 3
+#define COL_ORIGIN_AIRPORT 6
+#define COL_DEST_AIRPORT 8
 
 
 
@@ -52,7 +57,12 @@ float parseIntAsFloat(const char* token) {
 void leerCSV(const string& ruta,
     vector<float>& arrDelay,
     vector<float>& depDelay,
+    vector<float>& weatherDelay,
+    vector<float>& arrTime,
+    vector<float>& depTime,
     vector<string>& tailNum,
+    vector<string>& originAirport,
+    vector<string>& destAirport,
     int maxFilas) {
 
     FILE* file = fopen(ruta.c_str(), "r"); //Abre el archivo
@@ -80,7 +90,12 @@ void leerCSV(const string& ruta,
         //Inicializamos a NAN o vacio por si no se leen o encuentran en el fichero
         float arr = NAN;
         float dep = NAN;
+        float weath = NAN;
+        float arrTi = NAN;
+        float depTi = NAN;
         string tail = "";
+        string orAir = "";
+        string destAir = "";
 
         while (token != NULL) { //Recorre cada columna (hasta el final, que sera NULL)
 
@@ -90,8 +105,21 @@ void leerCSV(const string& ruta,
                 arr = parseFloat(token);
             }
 
+
             if (column == COL_DEP_DELAY) {
                 dep = parseFloat(token);
+            }
+
+            if (column == COL_WEATHER_DELAY) {
+                weath = parseFloat(token);
+            }
+
+            if (column == COL_ARR_TIME) {
+                arrTi = parseFloat(token);
+            }
+
+            if (column == COL_DEP_TIME) {
+                depTi = parseFloat(token);
             }
 
             if (column == COL_TAIL_NUM) {
@@ -99,15 +127,32 @@ void leerCSV(const string& ruta,
                     tail = token;
             }
 
+            if (column == COL_ORIGIN_AIRPORT) {
+                if (token != NULL)
+                    orAir = token;
+            }
+
+            if (column == COL_DEST_AIRPORT) {
+                if (token != NULL)
+                    destAir = token;
+            }
+
             //Pasamos a la siguiente columna
             token = strtok(NULL, ","); 
             column++;
         }
 
-        //Añado los valores de la columna al final de su vector correspondiente
+        //Añado los valores de la columna al final de su vector correspondiente y hace 0 los NAN
+
+
         arrDelay.push_back(arr);
         depDelay.push_back(dep);
+        weatherDelay.push_back(weath);
+        arrTime.push_back(arrTi);
+        depTime.push_back(depTi);
         tailNum.push_back(tail);
+        originAirport.push_back(orAir);
+        destAirport.push_back(destAir);
 
         filasLeidas++;
     }
@@ -115,6 +160,10 @@ void leerCSV(const string& ruta,
     fclose(file); //Cierro el fichero
 
     cout << "\nFilas cargadas: " << filasLeidas << endl;
+
+
+
+
 }
 
 
@@ -205,6 +254,171 @@ __global__ void detectarAterrizajes(float* arrDelay, char* tailNum, int N, float
 }
 
 
+__global__ void reductorMaximal(int* datos, int* resultado, char* columna) {
+
+
+    printf("\n[Maximizacion Simple] %s %d\n", columna, *resultado);
+
+}
+
+__global__ void reductorMinimal(int* datos, int* resultado, char* columna) {
+
+
+}
+
+
+void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<float>& arrDelay, vector<float>& weatherDelay, vector<float>& depTime, vector<float>& arrTime) {
+
+    vector<int> vectorDatos;
+    int* d_vectorDatos;
+    int* resultado;
+    char* columna;
+
+    switch (opcion1) {
+
+    case 1: {
+
+        columna = "DEP_DELAY";
+   
+        for (int i = 0; i < size(depDelay); i++) {
+        
+            if (!isnan(depDelay[i])) {
+
+                vectorDatos.push_back((int)truncf(depDelay[i]));
+
+            }
+            
+
+        }
+
+        break;
+
+    }
+
+    case 2: {
+   
+        columna = "ARR_DELAY";
+
+        for (int i = 0; i < size(arrDelay); i++) {
+
+            if (!isnan(arrDelay[i])) {
+
+                vectorDatos.push_back((int)truncf(arrDelay[i]));
+
+            }
+
+
+        }
+
+        break;
+    
+    }
+
+    case 3: {
+    
+        columna = "WEATHER_DELAY";
+
+        for (int i = 0; i < size(weatherDelay); i++) {
+
+            if (!isnan(weatherDelay[i])) {
+
+                vectorDatos.push_back((int)truncf(weatherDelay[i]));
+
+            }
+            
+
+        }
+
+        break;
+    
+    }
+
+    case 4: {
+
+        columna = "DEP_TIME";
+
+        for (int i = 0; i < size(depTime); i++) {
+
+            if (!isnan(depTime[i])) {
+
+                vectorDatos.push_back((int)truncf(depTime[i]));
+
+            }
+
+
+        }
+
+        break;
+    
+    }
+
+    case 5: {
+
+        columna = "ARR_TIME";
+
+        for (int i = 0; i < size(arrTime); i++) {
+
+            if (!isnan(arrTime[i])) {
+
+                vectorDatos.push_back((int)truncf(arrTime[i]));
+
+            }
+
+
+        }
+
+        break;
+    
+    }
+
+
+    }
+    
+
+    cudaMalloc(&resultado, sizeof(int));
+
+
+
+
+    char* d_columna;
+    cudaMalloc(&d_columna, strlen(columna) + 1);
+    cudaMemcpy(d_columna, columna, strlen(columna) + 1, cudaMemcpyHostToDevice);
+
+    size_t espacio = vectorDatos.size() * sizeof(int);
+    cudaMalloc(&d_vectorDatos, espacio);
+
+    cudaMemcpy(d_vectorDatos, vectorDatos.data(), espacio, cudaMemcpyHostToDevice);
+
+    dim3 blocksInGrid;
+    dim3 threadsInBlock;
+
+    configurarKernel(espacio, blocksInGrid, threadsInBlock);
+
+
+    if (opcion2 == 1) {
+    
+        int valorInicial = INT_MIN;
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMaximal<<<blocksInGrid, threadsInBlock>>>(d_vectorDatos, resultado, d_columna);
+        cudaDeviceSynchronize();
+
+    }
+    else {
+
+        int valorInicial = INT_MAX;
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMinimal<<<blocksInGrid, threadsInBlock>>>(d_vectorDatos, resultado, d_columna);
+        cudaDeviceSynchronize();
+
+    }
+
+    cudaFree(d_vectorDatos);
+    cudaFree(resultado);
+    cudaFree(d_columna);
+
+}
+
+
 
 int main()
 {
@@ -219,7 +433,12 @@ int main()
     //Vectores que vamos a necesitar
     vector<float> arrDelay;
     vector<float> depDelay;
+    vector<float> weatherDelay;
+    vector<float> arrTime;
+    vector<float> depTime;
     vector<string> tailNum;
+    vector<string> originAirport;
+    vector<string> destAirport;
 
     int limite = 0;  //Cambiar para cargar mas o menos datos (0 para cargarlos todos)
 
@@ -229,14 +448,14 @@ int main()
         //Ruta por defecto Jose Antonio:
         //leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
         //Ruta por defecto Jorge:
-        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
+        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, limite);
 
     }
     else
     {
         cout << "\nCargando con ruta: " << ruta << "\n" << endl;
         //FUNCION DE CARGA CON LA RUTA ESPECIFICADA
-        leerCSV(ruta, arrDelay, depDelay, tailNum, limite);
+        leerCSV(ruta, arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, limite);
     }
 
 
@@ -390,8 +609,6 @@ int main()
 
         case 3: {
 
-            cout << "\nProcediendo a la ejecucion 3, espere por favor...\n";
-
 
             int selector1;
             int selector2;
@@ -467,7 +684,9 @@ int main()
 
                 if ((selector1 > 0 && selector1 < 6) && (selector2 == 1 || selector2 == 2)) { //Que la opcion es una de las del selector, perfecto, que no, salgo.
 
-                    //funcion(selector1, selector2)
+                    
+                    lanzadorReductor(selector1, selector2, depDelay, arrDelay, weatherDelay, depTime, arrTime);
+                    
                     opcionInvalida = false;
                     break;
 
