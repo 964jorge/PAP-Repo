@@ -226,7 +226,11 @@ int main()
     if (ruta == "") {
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
-        leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
+        //Ruta por defecto Jose Antonio:
+        //leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
+        //Ruta por defecto Jorge:
+        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
+
     }
     else
     {
@@ -245,9 +249,10 @@ int main()
         cout << "2. Retraso en aterrizajes\n";
         cout << "3. Reduccion de retraso\n";
         cout << "4. Histograma de aeropuertos\n";
-        cout << "5. Salir\n";
+        cout << "5. Salir\n\n";
         cout << "Elija la opcion: ";
         cin >> opcion;
+        cout << "\n";
 
         //Switch case sencillo para manejar las 5 opciones posibles
         switch (opcion) {
@@ -384,7 +389,101 @@ int main()
         }
 
         case 3: {
+
             cout << "\nProcediendo a la ejecucion 3, espere por favor...\n";
+
+
+            int selector1;
+            int selector2;
+            bool opcionInvalida = true;
+
+            while (opcionInvalida) {
+           
+
+                cout << "\n---SELECTOR DE REDUCCIONES---\n";
+                cout << "1) Retraso de Salida.\n";
+                cout << "2) Retraso de Llegada.\n";
+                cout << "3) Retraso por el Tiempo.\n";
+                cout << "4) Horas de salida.\n";
+                cout << "5) Horas de llegada.\n";
+                cout << "6) Salir.\n\n";
+
+
+  
+                cin >> selector1; //Elijo opcion
+                cout << "\n";
+
+
+                if (!cin) { //Si he elegido un entero me salto esto, si no limpiamos el cin y reiniciamos el bucle
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+                if (selector1 == 6) { //Compruebo si me han dicho que quieren salir
+
+                    opcionInvalida = false;
+                    break;
+
+                }
+
+
+
+
+
+                cout << "1) Maximizar.\n";
+                cout << "2) Minimizar.\n";
+                cout << "3) Salir.\n\n";
+
+                
+                
+                cin >> selector2; //Pregunto que quiere el usuario
+                cout << "\n";
+
+
+                if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+
+                if (selector2 == 3) { //Que me piden salir, salgo
+
+                    opcionInvalida = false;
+                    break;
+
+                }
+                
+                
+
+                if ((selector1 > 0 && selector1 < 6) && (selector2 == 1 || selector2 == 2)) { //Que la opcion es una de las del selector, perfecto, que no, salgo.
+
+                    //funcion(selector1, selector2)
+                    opcionInvalida = false;
+                    break;
+
+                }
+                else {
+                
+                    cout << "\nOpcion no valida\n";
+                
+                }
+                
+                
+                
+              
+            }
+
+
             break;
         }
 
