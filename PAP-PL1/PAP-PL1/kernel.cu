@@ -254,17 +254,47 @@ __global__ void detectarAterrizajes(float* arrDelay, char* tailNum, int N, float
 }
 
 
-__global__ void reductorMaximal(int* datos, int* resultado, char* columna) {
+__global__ void reductorMaximalSimple(int* datos, int* resultado, int tamanno) {
 
 
-    printf("\n[Maximizacion Simple] %s %d\n", columna, *resultado);
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    if (idx < tamanno) {
+    
+        atomicMax(resultado, datos[idx]);
+
+    }
 
 }
 
-__global__ void reductorMinimal(int* datos, int* resultado, char* columna) {
+__global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {}
 
+__global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamanno) {}
+
+__global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno) {}
+
+
+
+__global__ void reductorMinimalSimple(int* datos, int* resultado, int tamanno) {
+
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+
+    if (idx < tamanno) {
+    
+        atomicMin(resultado, datos[idx]);
+
+    }
+    
 
 }
+
+__global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {}
+
+__global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamanno) {}
+
+__global__ void reductorMinimalReductor(int* datos, int* resultado, int tamanno) {}
 
 
 void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<float>& arrDelay, vector<float>& weatherDelay, vector<float>& depTime, vector<float>& arrTime) {
@@ -273,6 +303,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
     int* d_vectorDatos;
     int* resultado;
     char* columna;
+
 
     switch (opcion1) {
 
@@ -375,18 +406,14 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
     }
     
 
+    int resultadoAImprimir;
+    int tamanno = vectorDatos.size();
+    
+
     cudaMalloc(&resultado, sizeof(int));
-
-
-
-
-    char* d_columna;
-    cudaMalloc(&d_columna, strlen(columna) + 1);
-    cudaMemcpy(d_columna, columna, strlen(columna) + 1, cudaMemcpyHostToDevice);
 
     size_t espacio = vectorDatos.size() * sizeof(int);
     cudaMalloc(&d_vectorDatos, espacio);
-
     cudaMemcpy(d_vectorDatos, vectorDatos.data(), espacio, cudaMemcpyHostToDevice);
 
     dim3 blocksInGrid;
@@ -397,24 +424,76 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
     if (opcion2 == 1) {
     
+       
         int valorInicial = INT_MIN;
+        
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMaximal<<<blocksInGrid, threadsInBlock>>>(d_vectorDatos, resultado, d_columna);
+        reductorMaximalSimple <<<blocksInGrid, threadsInBlock >>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Maximizacion Simple] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMaximalBasico<<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Maximizacion Basica] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMaximalIntermedio <<<blocksInGrid, threadsInBlock >>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Maximizacion Intermedia] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMaximalReductor <<<blocksInGrid, threadsInBlock >>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Maximizacion Reduccion] %s %d\n", columna, resultadoAImprimir);
 
     }
     else {
 
+
         int valorInicial = INT_MAX;
+        
+
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMinimal<<<blocksInGrid, threadsInBlock>>>(d_vectorDatos, resultado, d_columna);
+        reductorMinimalSimple <<<blocksInGrid, threadsInBlock>>>(d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Minimizacion Simple] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMinimalBasico <<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Minimizacion Basica] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMinimalIntermedio <<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Minimizacion Intermedia] %s %d\n", columna, resultadoAImprimir);
+
+
+        cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
+        reductorMinimalReductor <<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
+        printf("\n[Minimizacion Reduccion] %s %d\n", columna, resultadoAImprimir);
+
+
 
     }
 
     cudaFree(d_vectorDatos);
     cudaFree(resultado);
-    cudaFree(d_columna);
 
 }
 
