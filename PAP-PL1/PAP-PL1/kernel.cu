@@ -319,7 +319,74 @@ __global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {
 
 }
 
-__global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamanno) {}
+
+
+__global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamanno) {
+
+
+    extern __shared__ int datosEnBloque[];
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+
+    if (idx >= tamanno) {
+
+        return;
+
+    }
+
+    datosEnBloque[threadIdx.x] = datos[idx];
+
+    __syncthreads();
+
+
+    if (threadIdx.x == 0) {
+
+
+        datosEnBloque[threadIdx.x] = max(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]);
+
+    }
+    else if (threadIdx.x == blockDim.x - 1) {
+
+
+        datosEnBloque[threadIdx.x] = max(datosEnBloque[threadIdx.x - 1], datosEnBloque[threadIdx.x]);
+
+    }
+    else {
+
+        datosEnBloque[threadIdx.x] = max(datosEnBloque[threadIdx.x - 1], max(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+
+    }
+
+
+    __syncthreads();
+
+
+
+    if (idx % 2 == 0) {
+    
+
+        if (threadIdx.x == blockDim.x - 1 || idx == tamanno - 1) {
+        
+            atomicMax(resultado, datosEnBloque[threadIdx.x]);
+        
+        }
+        else {
+        
+            atomicMax(resultado, max(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+        
+        }
+
+    
+    }
+
+
+
+
+}
+
+
+
 
 __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno) {}
 
@@ -397,9 +464,78 @@ __global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {
 
 }
 
-__global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamanno) {}
+
+
+__global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamanno) {
+
+
+    extern __shared__ int datosEnBloque[];
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+
+    if (idx >= tamanno) {
+
+        return;
+
+    }
+
+    datosEnBloque[threadIdx.x] = datos[idx];
+
+    __syncthreads();
+
+
+    if (threadIdx.x == 0) {
+
+
+        datosEnBloque[threadIdx.x] = min(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]);
+
+    }
+    else if (threadIdx.x == blockDim.x - 1) {
+
+
+        datosEnBloque[threadIdx.x] = min(datosEnBloque[threadIdx.x - 1], datosEnBloque[threadIdx.x]);
+
+    }
+    else {
+
+        datosEnBloque[threadIdx.x] = min(datosEnBloque[threadIdx.x - 1], min(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+
+    }
+
+
+    __syncthreads();
+
+
+
+    if (idx % 2 == 0) {
+
+
+        if (threadIdx.x == blockDim.x - 1 || idx == tamanno - 1) {
+
+            atomicMin(resultado, datosEnBloque[threadIdx.x]);
+
+        }
+        else {
+
+            atomicMin(resultado, min(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+
+        }
+
+
+    }
+
+
+
+
+}
+
+
 
 __global__ void reductorMinimalReductor(int* datos, int* resultado, int tamanno) {}
+
+
+
 
 
 void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<float>& arrDelay, vector<float>& weatherDelay, vector<float>& depTime, vector<float>& arrTime) {
@@ -547,7 +683,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMaximalIntermedio <<<blocksInGrid, threadsInBlock >>> (d_vectorDatos, resultado, tamanno);
+        reductorMaximalIntermedio <<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
         cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
         printf("\n[Maximizacion Intermedia] %s %d\n", columna, resultadoAImprimir);
@@ -581,7 +717,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMinimalIntermedio <<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        reductorMinimalIntermedio <<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
         cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
         printf("\n[Minimizacion Intermedia] %s %d\n", columna, resultadoAImprimir);
