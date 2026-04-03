@@ -254,6 +254,11 @@ __global__ void detectarAterrizajes(float* arrDelay, char* tailNum, int N, float
 }
 
 
+
+
+
+
+
 __global__ void reductorMaximalSimple(int* datos, int* resultado, int tamanno) {
 
 
@@ -267,11 +272,62 @@ __global__ void reductorMaximalSimple(int* datos, int* resultado, int tamanno) {
 
 }
 
-__global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {}
+__global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {
+
+
+    extern __shared__ int datosEnBloque[];
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+
+    if (idx >= tamanno) {
+    
+        return;
+
+    }
+
+    datosEnBloque[threadIdx.x] = datos[idx];
+
+    __syncthreads();
+
+
+    int maximoLocal;
+
+    
+    if (threadIdx.x == 0){
+    
+
+        maximoLocal = max(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]);
+    
+    }else if(threadIdx.x == blockDim.x - 1) {
+     
+
+        maximoLocal = max(datosEnBloque[threadIdx.x - 1], datosEnBloque[threadIdx.x]);
+    
+    }else {
+    
+        maximoLocal = max(datosEnBloque[threadIdx.x - 1], max(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+    
+    }
+    
+    
+
+
+
+    atomicMax(resultado, maximoLocal);
+
+
+}
 
 __global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamanno) {}
 
 __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno) {}
+
+
+
+
+
+
 
 
 
@@ -290,7 +346,56 @@ __global__ void reductorMinimalSimple(int* datos, int* resultado, int tamanno) {
 
 }
 
-__global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {}
+
+
+
+__global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {
+
+
+    extern __shared__ int datosEnBloque[];
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+
+    if (idx >= tamanno) {
+
+        return;
+
+    }
+
+    datosEnBloque[threadIdx.x] = datos[idx];
+
+    __syncthreads();
+
+
+    int minimoLocal;
+
+
+    if (threadIdx.x == 0) {
+
+
+        minimoLocal = min(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]);
+
+    }
+    else if (threadIdx.x == blockDim.x - 1) {
+
+
+        minimoLocal = min(datosEnBloque[threadIdx.x - 1], datosEnBloque[threadIdx.x]);
+
+    }
+    else {
+
+        minimoLocal = min(datosEnBloque[threadIdx.x - 1], min(datosEnBloque[threadIdx.x], datosEnBloque[threadIdx.x + 1]));
+
+    }
+
+
+
+
+
+    atomicMin(resultado, minimoLocal);
+
+}
 
 __global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamanno) {}
 
@@ -435,7 +540,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMaximalBasico<<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        reductorMaximalBasico<<<blocksInGrid, threadsInBlock, threadsInBlock.x*sizeof(int)>>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
         cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
         printf("\n[Maximizacion Basica] %s %d\n", columna, resultadoAImprimir);
@@ -469,7 +574,7 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
-        reductorMinimalBasico <<<blocksInGrid, threadsInBlock>>> (d_vectorDatos, resultado, tamanno);
+        reductorMinimalBasico <<<blocksInGrid, threadsInBlock, threadsInBlock.x*sizeof(int)>>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
         cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
         printf("\n[Minimizacion Basica] %s %d\n", columna, resultadoAImprimir);

@@ -1,32 +1,32 @@
 ﻿  Compiling CUDA source file kernel.cu...
   
   C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\x64\Debug\kernel.cu.obj "C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu" 
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(312): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(417): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(331): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(436): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(350): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(455): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(369): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(474): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(388): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(493): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(312): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(417): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(331): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(436): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(350): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(455): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(369): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(474): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(388): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(493): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
   kernel.cu
 C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(44): warning C4244: 'return': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(410): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(422): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(565): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(597): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(515): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(527): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(670): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(702): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
      Creando biblioteca C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.lib y objeto C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.exp
 LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
   PAP-PL1.vcxproj -> C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.exe
