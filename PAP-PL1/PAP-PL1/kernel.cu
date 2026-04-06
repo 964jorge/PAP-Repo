@@ -32,6 +32,8 @@ __constant__ float d_umbral_2; //EL umbral en memoria constante que pide el ejer
 #define COL_TAIL_NUM 3
 #define COL_ORIGIN_AIRPORT 6
 #define COL_DEST_AIRPORT 8
+#define COL_ORIGIN_SEQ_ID 5
+#define COL_DEST_SEQ_ID 7
 
 
 
@@ -52,6 +54,13 @@ float parseIntAsFloat(const char* token) {
     return (float)atoi(token);
 }
 
+float parseInt(const char* token) {
+    if (token == NULL || strlen(token) == 0 || token[0] == '\n') { //Todas las posibilidades para valor nulo
+        return NAN;
+    }
+    return atoi(token);
+}
+
 
 //LECTURA CSV (Se deben pasar la dirección de los vectores donde copiar las columnas)
 void leerCSV(const string& ruta,
@@ -63,6 +72,8 @@ void leerCSV(const string& ruta,
     vector<string>& tailNum,
     vector<string>& originAirport,
     vector<string>& destAirport,
+    vector<int>& originID,
+    vector<int>& destID,
     int maxFilas) {
 
     FILE* file = fopen(ruta.c_str(), "r"); //Abre el archivo
@@ -96,6 +107,8 @@ void leerCSV(const string& ruta,
         string tail = "";
         string orAir = "";
         string destAir = "";
+        int orID = NAN;
+        int deID = NAN;
 
         while (token != NULL) { //Recorre cada columna (hasta el final, que sera NULL)
 
@@ -137,6 +150,20 @@ void leerCSV(const string& ruta,
                     destAir = token;
             }
 
+            if (column == COL_ORIGIN_SEQ_ID) {
+            
+                orID = parseInt(token);
+
+            
+            }
+
+            if (column == COL_DEST_SEQ_ID) {
+
+                deID = parseInt(token);
+
+
+            }
+
             //Pasamos a la siguiente columna
             token = strtok(NULL, ","); 
             column++;
@@ -153,6 +180,8 @@ void leerCSV(const string& ruta,
         tailNum.push_back(tail);
         originAirport.push_back(orAir);
         destAirport.push_back(destAir);
+        originID.push_back(orID);
+        destID.push_back(deID);
 
         filasLeidas++;
     }
@@ -962,6 +991,8 @@ int main()
     vector<string> tailNum;
     vector<string> originAirport;
     vector<string> destAirport;
+    vector<int> originID;
+    vector<int> destID;
 
     int limite = 0;  //Cambiar para cargar mas o menos datos (0 para cargarlos todos)
 
@@ -971,14 +1002,14 @@ int main()
         //Ruta por defecto Jose Antonio:
         //leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
         //Ruta por defecto Jorge:
-        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, limite);
+        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
     }
     else
     {
         cout << "\nCargando con ruta: " << ruta << "\n" << endl;
         //FUNCION DE CARGA CON LA RUTA ESPECIFICADA
-        leerCSV(ruta, arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, limite);
+        leerCSV(ruta, arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
     }
 
 
@@ -1230,26 +1261,77 @@ int main()
         }
 
         case 4: {
-            cout << "\nProcediendo a la ejecucion 4, espere por favor...\n";
+            
+
+            int selector;
+            int selector2;
+            bool opcionInvalida = true;
+
+            while (opcionInvalida) {
+            
 
 
-            //ESTA FUNCION ES SOLO PARA COMPROBAR, ELIMINAR CUANDO SE QUIERA HACER EL APARTADO 4:
-            for (int i = 0; i < 10 && i < arrDelay.size(); i++) {
+                cout << "1) Histograma aeropuertos de salida\n";
+                cout << "2) Histograma aeropuertos de llegada\n";
+                cout << "3) Salir\n\n";
 
-                cout << "Fila " << i << " | ";
+                cin >> selector;
 
-                if (isnan(arrDelay[i]))
-                    cout << "ArrDelay: NAN | ";
-                else
-                    cout << "ArrDelay: " << arrDelay[i] << " | ";
+                cout << "\n";
 
-                if (isnan(depDelay[i]))
-                    cout << "DepDelay: NAN | ";
-                else
-                    cout << "DepDelay: " << depDelay[i] << " | ";
 
-                cout << endl;
+                if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+
+                if (selector == 3) { //Que me piden salir, salgo
+
+                    opcionInvalida = false;
+                    break;
+
+                }
+
+                break;
+
+            
             }
+
+            while (opcionInvalida) {
+
+
+
+                cout << "Introduzca un umbral para mostrar resultados.\n\n";
+
+                cin >> selector2;
+
+                cout << "\n";
+
+
+                if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+
+
+                break;
+
+
+            }
+
+            
 
 
             break;
