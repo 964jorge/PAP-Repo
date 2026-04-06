@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <unordered_map>
+
 
 using namespace std; //Para no tener que poner std:: antes de: vectores, strings, cout, cin, endl, isnan, etc...
 
@@ -972,6 +974,91 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
 
+
+
+
+
+
+__global__ void contarOcurrencias(int* destID, int opcion2, int tamanno, int* resultado) {
+
+    printf("estoy en el bucle");
+
+}
+
+
+
+
+void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport, vector<int>& originID, vector<string>& destAirport, vector<int>& destID) {
+
+
+
+    //He comprobado que estan todos los datos asi que no va a haber problema con el bucle
+    unordered_map<int, string> mapaIds;
+    int i = 0;
+    int* resultado;
+    int* d_originID;
+    int* d_destID;
+    vector<int> resultadoKernel;
+
+    while (i < originAirport.size()) {
+    
+
+        mapaIds.insert({ destID[i], destAirport[i] });
+        mapaIds.insert({ originID[i], originAirport[i] });
+     
+        i++;
+
+    
+    }
+
+    dim3 blocksInGrid;
+    dim3 threadsInBlock;
+    size_t espacio = originID.size() * sizeof(pair<int, int>);
+
+    configurarKernel(espacio, blocksInGrid, threadsInBlock);
+
+    cudaMalloc(&resultado, 2 * originID.size() * sizeof(int));
+    
+
+
+    if (opcion1 == 1) {
+
+
+        cudaMalloc(&d_originID, originID.size() * sizeof(int));
+        cudaMemcpy(d_originID, originID.data(), originID.size() * sizeof(int), cudaMemcpyHostToDevice);
+
+        contarOcurrencias<<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>>(d_originID, opcion2, originID.size(), resultado);
+
+        cudaFree(d_originID);
+    
+    }
+    else {
+
+        cudaMalloc(&d_destID, destID.size() * sizeof(int));
+        cudaMemcpy(d_destID, destID.data(), destID.size() * sizeof(int), cudaMemcpyHostToDevice);
+     
+        contarOcurrencias<<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>>(d_destID, opcion2, destID.size(), resultado);
+
+        cudaFree(d_destID);
+    
+    }
+
+
+    cudaMemcpy(resultado, resultadoKernel.data(), 2 * originID.size() * sizeof(int), cudaMemcpyDeviceToHost);
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 int main()
 {
 
@@ -1280,7 +1367,7 @@ int main()
                 cout << "\n";
 
 
-                if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+                if (!cin || selector < 0) { //Que me han dado un entero bien, que no salgo y reinicio el cin
 
                     cout << "\nOpcion no valida\n";
                     //Para el caso de que no pusiera un numero
@@ -1314,7 +1401,7 @@ int main()
                 cout << "\n";
 
 
-                if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+                if (!cin || selector2 < 0) { //Que me han dado un entero bien, que no salgo y reinicio el cin
 
                     cout << "\nOpcion no valida\n";
                     //Para el caso de que no pusiera un numero
@@ -1325,13 +1412,13 @@ int main()
                 }
 
 
-
                 break;
 
 
             }
 
             
+            lanzadorHistograma(selector, selector2, originAirport, originID, destAirport, destID);
 
 
             break;
