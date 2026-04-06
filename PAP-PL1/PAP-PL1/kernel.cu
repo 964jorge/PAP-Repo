@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <algorithm>
 
 
 using namespace std; //Para no tener que poner std:: antes de: vectores, strings, cout, cin, endl, isnan, etc...
@@ -979,9 +980,49 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
 
-__global__ void contarOcurrencias(int* destID, int opcion2, int tamanno, int* resultado) {
+__global__ void contarOcurrencias(int* datos, int tamannoSolucion, int tamannoDatos, int* resultado) {
 
-    printf("estoy en el bucle");
+
+    extern __shared__ int datosEnBloque[];
+
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    
+
+    for (int i = threadIdx.x; i < tamannoSolucion; i = i + blockDim.x) {
+
+        datosEnBloque[i] = 0;
+
+    }
+    
+    
+    
+    __syncthreads();
+
+    
+
+    if (idx < tamannoDatos){
+    
+
+        atomicAdd(&datosEnBloque[datos[idx]], 1);
+    
+    }
+    
+
+    __syncthreads();
+
+    for (int i = threadIdx.x; i < tamannoSolucion; i = i + blockDim.x) {
+
+
+        atomicAdd(&resultado[i], datosEnBloque[i]);
+
+
+
+    }
+
+    __syncthreads();
+    
+
 
 }
 
@@ -993,59 +1034,164 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
 
     //He comprobado que estan todos los datos asi que no va a haber problema con el bucle
-    unordered_map<int, string> mapaIds;
-    int i = 0;
+    unordered_map<int, string> mapaIdsString;
+    unordered_map<int, int> mapaIdsIndice;
     int* resultado;
     int* d_originID;
     int* d_destID;
+   
     vector<int> resultadoKernel;
+
+
+    int i = 0;
 
     while (i < originAirport.size()) {
     
 
-        mapaIds.insert({ destID[i], destAirport[i] });
-        mapaIds.insert({ originID[i], originAirport[i] });
+        mapaIdsString.insert({ destID[i], destAirport[i] });
+        mapaIdsString.insert({ originID[i], originAirport[i] });
      
         i++;
 
     
     }
 
+    int j = 0;
+    int k = 0;
+
+    while (j < originAirport.size()) {
+    
+        if(mapaIdsIndice.count(destID[j]) == 0){
+        
+            mapaIdsIndice.insert({ destID[j], k });
+            k++;
+
+        }
+
+        if (mapaIdsIndice.count(originID[j]) == 0) {
+
+            mapaIdsIndice.insert({ originID[j], k });
+            k++;
+
+        }
+
+        j++;
+        
+    
+    }
+
+
+
     dim3 blocksInGrid;
     dim3 threadsInBlock;
-    size_t espacio = originID.size() * sizeof(pair<int, int>);
+    size_t espacio = originID.size() * sizeof(int);
 
     configurarKernel(espacio, blocksInGrid, threadsInBlock);
 
-    cudaMalloc(&resultado, 2 * originID.size() * sizeof(int));
+    cudaMalloc(&resultado, mapaIdsIndice.size() * sizeof(int));
     
-
 
     if (opcion1 == 1) {
 
+        vector<int> originIDCopia = originID;
+
+        for (int i = 0; i < originID.size(); i++) {
+
+            auto it = mapaIdsIndice.find(originID[i]);
+            originIDCopia[i] = it->second;
+            
+
+        }
+
 
         cudaMalloc(&d_originID, originID.size() * sizeof(int));
-        cudaMemcpy(d_originID, originID.data(), originID.size() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_originID, originIDCopia.data(), originID.size() * sizeof(int), cudaMemcpyHostToDevice);
 
-        contarOcurrencias<<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>>(d_originID, opcion2, originID.size(), resultado);
+        contarOcurrencias<<<blocksInGrid, threadsInBlock, mapaIdsIndice.size() * sizeof(int) >>>(d_originID, mapaIdsIndice.size(), originID.size(), resultado);
 
         cudaFree(d_originID);
     
     }
     else {
 
+
+        vector<int> destIDCopia = destID;
+
+        for (int i = 0; i < destID.size(); i++) {
+
+            auto indice = mapaIdsIndice.find(destID[i]);
+            destIDCopia[i] = indice->second;
+
+        }
+
         cudaMalloc(&d_destID, destID.size() * sizeof(int));
-        cudaMemcpy(d_destID, destID.data(), destID.size() * sizeof(int), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_destID, destIDCopia.data(), destID.size() * sizeof(int), cudaMemcpyHostToDevice);
      
-        contarOcurrencias<<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>>(d_destID, opcion2, destID.size(), resultado);
+        contarOcurrencias<<<blocksInGrid, threadsInBlock, mapaIdsIndice.size() * sizeof(int) >>>(d_destID, mapaIdsIndice.size(), destID.size(), resultado);
 
         cudaFree(d_destID);
     
     }
 
+    
+    resultadoKernel.resize(mapaIdsIndice.size());
+    cudaMemcpy(resultadoKernel.data(), resultado, mapaIdsIndice.size() * sizeof(int), cudaMemcpyDeviceToHost);
 
-    cudaMemcpy(resultado, resultadoKernel.data(), 2 * originID.size() * sizeof(int), cudaMemcpyDeviceToHost);
 
+    auto it = max_element(resultadoKernel.begin(), resultadoKernel.end());
+
+    int max = *it;
+
+    int siguienteMaximo = max;
+    int posicion = it - resultadoKernel.begin();
+
+    unordered_map<int, int> mapaIndiceIds;
+
+    for (auto it = mapaIdsIndice.begin(); it != mapaIdsIndice.end(); ++it) {
+
+        mapaIndiceIds.insert({ it->second, it->first });
+        
+    }
+
+    
+
+    while (siguienteMaximo >= opcion2) {
+    
+        
+        int id = mapaIndiceIds.find(posicion)->second;
+        string codAeropuerto = mapaIdsString.find(id)->second;
+    
+        cout << "El aeropuerto " << codAeropuerto << " con id " << id << " aparece " << siguienteMaximo << " veces. ";
+
+        float asteriscos = ((float)siguienteMaximo / (float)max) * 15;
+
+        for (int i = asteriscos; i > 0; i--) {
+
+
+            cout << "#";
+
+
+        }
+
+
+        cout << "\n";
+
+        resultadoKernel[posicion] = 0;
+
+
+
+        it = max_element(resultadoKernel.begin(), resultadoKernel.end());
+
+        siguienteMaximo = *it;
+        posicion = it - resultadoKernel.begin();
+
+    
+    }
+
+    cout << "Fin de resultados.\n";
+
+    cudaFree(resultado);
+    
 
 }
 

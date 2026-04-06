@@ -1,48 +1,53 @@
 ﻿  Compiling CUDA source file kernel.cu...
   
   C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\bin\HostX86\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\include"  -G   --keep-dir x64\Debug  -maxrregcount=0  --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /Fdx64\Debug\vc142.pdb /FS /Zi /RTC1 /MDd " -o C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\x64\Debug\kernel.cu.obj "C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu" 
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(112): warning #173-D: floating-point value does not fit in required integral type
-  
 C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(113): warning #173-D: floating-point value does not fit in required integral type
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(678): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(114): warning #173-D: floating-point value does not fit in required integral type
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(697): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(679): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(716): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(698): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(735): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(717): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(754): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(736): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(678): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(755): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(697): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(679): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(716): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(698): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(735): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(717): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(754): warning #2464-D: conversion from a string literal to "char *" is deprecated
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(736): warning #2464-D: conversion from a string literal to "char *" is deprecated
+  
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(755): warning #2464-D: conversion from a string literal to "char *" is deprecated
   
   kernel.cu
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(48): warning C4244: 'return': conversión de 'double' a 'float'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(63): warning C4244: 'return': conversión de 'int' a 'float'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(112): warning C4244: 'inicializando': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(49): warning C4244: 'return': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(64): warning C4244: 'return': conversión de 'int' a 'float'; posible pérdida de datos
 C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(113): warning C4244: 'inicializando': conversión de 'float' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(157): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(164): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(776): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(782): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(823): warning C4018: '<': no coinciden signed/unsigned
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(837): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(839): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(910): warning C4018: '<': no coinciden signed/unsigned
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(924): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(926): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1018): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1030): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1040): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1127): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
-C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1159): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(114): warning C4244: 'inicializando': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(158): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(165): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(777): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(783): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(824): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(838): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(840): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(911): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(925): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(927): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1089): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1110): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1130): warning C4267: 'argumento': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1146): warning C4244: 'inicializando': conversión de '__int64' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1168): warning C4244: 'inicializando': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1186): warning C4244: '=': conversión de '__int64' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1273): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\PAP-PL1\kernel.cu(1305): warning C4267: 'inicializando': conversión de 'size_t' a 'int'; posible pérdida de datos
+     Creando biblioteca C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.lib y objeto C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.exp
+LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
   PAP-PL1.vcxproj -> C:\Users\Jorge\source\repos\PAP-Repo\PAP-PL1\x64\Debug\PAP-PL1.exe
