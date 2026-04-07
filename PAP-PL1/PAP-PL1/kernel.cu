@@ -1453,11 +1453,12 @@ int main()
 
             bool opcionNoValida = true;
             float umbral;
-            cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
-            cin >> umbral;
 
             while (opcionNoValida) {
             
+                cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
+                cin >> umbral;
+
                 if (!cin) { //Que me han dado un float bien, que no salgo y reinicio el cin
 
                     cout << "\nOpcion no valida\n";
