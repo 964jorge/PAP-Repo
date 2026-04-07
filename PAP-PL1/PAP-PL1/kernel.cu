@@ -293,6 +293,7 @@ __global__ void detectarAterrizajes(float* arrDelay, char* tailNum, int N, float
 
 __global__ void reductorMaximalSimple(int* datos, int* resultado, int tamanno) {
 
+    //aqui cada hilo que tiene datos (por eso lo de < que tamanno) hace el maximo atomicamente entre el resultado y su posicion
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -306,26 +307,29 @@ __global__ void reductorMaximalSimple(int* datos, int* resultado, int tamanno) {
 
 __global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {
 
+    //empezamos declarando la memoria compartida de cada bloque
 
     extern __shared__ int datosEnBloque[];
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
-
-
-    if (idx >= tamanno) {
     
-        return;
+    //si el hilo tiene datos los copia en la posicion del bloque que le corresponde
+    if (idx < tamanno) {
+    
+        datosEnBloque[threadIdx.x] = datos[idx];
+
 
     }
 
-    datosEnBloque[threadIdx.x] = datos[idx];
-
+    //esperamos a todos    
     __syncthreads();
 
-
+    //definimos un maximo local, que sera el mayor de cada bloque
     int maximoLocal;
 
-    
+    //ahora, si eres el primer hilo, mirate a ti y al siguiente
+    //si eres el ultimo mirate a ti y al anterior
+    //si no eres ninguno mirate a ti, a tu anterior y a tu posterior
     if (threadIdx.x == 0){
     
 
@@ -344,7 +348,7 @@ __global__ void reductorMaximalBasico(int* datos, int* resultado, int tamanno) {
     
     
 
-
+    //ahora comparad el maximo local con el resultado y dejad el mayor
 
     atomicMax(resultado, maximoLocal);
 
@@ -361,13 +365,12 @@ __global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamann
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
 
-    if (idx >= tamanno) {
+    if (idx < tamanno) {
 
-        return;
+        datosEnBloque[threadIdx.x] = datos[idx];
+
 
     }
-
-    datosEnBloque[threadIdx.x] = datos[idx];
 
     __syncthreads();
 
@@ -393,7 +396,10 @@ __global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamann
 
     __syncthreads();
 
+    //hasta aqui es identico al maximal basico
 
+    //que hacemos aqui, si eres un hilo par que no sea el ultimo mirate a ti y al siguiente y comparalo con resultado
+    //si eres el ultimo mirate a ti y comparate con el resultado
 
     if (idx % 2 == 0) {
     
@@ -422,7 +428,7 @@ __global__ void reductorMaximalIntermedio(int* datos, int* resultado, int tamann
 
 __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno) {
 
-
+    //declaramos la memoria compartida, e inicializamos todos los valores con el valor que tenga el hilo y si no lo tiene con el minimo de los enteros. luego esperamos a todos
 
     extern __shared__ int datosEnBloque[];
 
@@ -433,12 +439,18 @@ __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno)
     __syncthreads();
 
     
+
+    //eres el hilo 0 y el tamaño de bloques es impar? comparate con el ultimo elemento y guardalo en tu posicion
+
     if(threadIdx.x == 0 && blockDim.x % 2 != 0){ 
         
         datosEnBloque[0] = max(datosEnBloque[0], datosEnBloque[blockDim.x - 1]);
     
     }
 
+    //Importante, en cada iteracion esperamos a todos los hilos
+    //cada hilo de la primera mitad se va a comparar con el que tenga su indice + el stride, esto hace que la solucion se encuentre tras cada paso en los elementos menores al stride
+    //y como cada vez el stride se corta a la mitad va a tender a la primera posicion
 
     for (int stride = blockDim.x / 2; stride > 0; stride = stride/2) {
     
@@ -455,7 +467,7 @@ __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno)
     
     }
 
-
+     //luego despues de tener el resultado en la posicion 0 si eres el hilo 0 copia el resultado en el indice igual al bloque (porque solo hay un hilo 0 por bloque)
     if (threadIdx.x == 0) {
 
         resultado[blockIdx.x] = datosEnBloque[0];
@@ -477,6 +489,7 @@ __global__ void reductorMaximalReductor(int* datos, int* resultado, int tamanno)
 
 __global__ void reductorMinimalSimple(int* datos, int* resultado, int tamanno) {
 
+    //Es igual que el maximal simple pero con el minimo atomico en vez del maximo atomico
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -496,19 +509,20 @@ __global__ void reductorMinimalSimple(int* datos, int* resultado, int tamanno) {
 __global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {
 
 
+    //Es practicamente identico al maximal basico
+
     extern __shared__ int datosEnBloque[];
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
 
-    if (idx >= tamanno) {
+    if (idx < tamanno) {
 
-        return;
+        datosEnBloque[threadIdx.x] = datos[idx];
 
     }
 
-    datosEnBloque[threadIdx.x] = datos[idx];
-
+   
     __syncthreads();
 
 
@@ -545,19 +559,18 @@ __global__ void reductorMinimalBasico(int* datos, int* resultado, int tamanno) {
 
 __global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamanno) {
 
+    //practicamente identico al maximal intermedio
 
     extern __shared__ int datosEnBloque[];
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
 
-    if (idx >= tamanno) {
+    if (idx < tamanno) {
 
-        return;
+        datosEnBloque[threadIdx.x] = datos[idx];
 
     }
-
-    datosEnBloque[threadIdx.x] = datos[idx];
 
     __syncthreads();
 
@@ -612,6 +625,8 @@ __global__ void reductorMinimalIntermedio(int* datos, int* resultado, int tamann
 __global__ void reductorMinimalReductor(int* datos, int* resultado, int tamanno) {
 
 
+    //practicamente identico al maximal reductor
+
     extern __shared__ int datosEnBloque[];
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -662,16 +677,18 @@ __global__ void reductorMinimalReductor(int* datos, int* resultado, int tamanno)
 
 
 
-
+//Este es el lanzador el ejercicio 3.  Le estamos pasando la opcion que nos indica sobre que conjunto de datos trabajar y la opcion de que operacion hacer (ademas de todos los datos posibles)
 void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<float>& arrDelay, vector<float>& weatherDelay, vector<float>& depTime, vector<float>& arrTime) {
 
+    //inicializamos cosas como los punteros para el kernel
     vector<int> vectorDatos;
     int* d_vectorDatos;
     int* resultado;
     int* resultadoReductor;
     char* columna;
 
-
+    //este switch lo hacemos para ver que ha pedido el usuario, en columna guardamos que columna guardamos luego para el print y 
+    //tomamos de los valores que pasamos los que son numeros truncados como se pide llenando nuestro vectorDatos que sera el que usaremos para inicializar el puntero del kernel
     switch (opcion1) {
 
     case 1: {
@@ -773,36 +790,53 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
     }
     
 
+    //ahora tenemos vectorDatos con los datos ya casteados a entero truncado entonces el tamaño del problema sera el del vector
+    //inicializamos varianbles para luego poder hacer prints y tabajar con ellas
     int resultadoAImprimir;
     int tamanno = vectorDatos.size();
     vector<int> resultadoReduccionVector;
 
+    //definimos el tamaño de bloque y el numero de ellos con nuestra funcion
     dim3 blocksInGrid;
     dim3 threadsInBlock;
     size_t espacio = vectorDatos.size() * sizeof(int);
     configurarKernel(espacio, blocksInGrid, threadsInBlock);
     
-
+    //alocamos para luego poder traernos a CPU el resultado de la reduccion (que va a ser unico en la MAYORIA de casos)
     cudaMalloc(&resultado, sizeof(int));
 
+    //alocamos y copiamos en el puntero el vector de datos que ya teniamos 
     cudaMalloc(&d_vectorDatos, espacio);
     cudaMemcpy(d_vectorDatos, vectorDatos.data(), espacio, cudaMemcpyHostToDevice);
 
+    //este sera para el resulado del ultimo tipo de reductor, el que trae un vector de datos combinados por bloque, no se usara hasta el ultimo caso pero por tenerlo alocado ya
+    //como vamos a combinar todos los bloques en uno necesitamos que el resultado tenga el tamaño de un bloque
     cudaMalloc(&resultadoReductor, blocksInGrid.x * sizeof(int));
     
 
-
+    //este es el selector de antes que nos decia que operacion hacer, la primera es maximizar, la segunda minimizar
     if (opcion2 == 1) {
     
        
+        //este sera para inicializar el resultado que aun no tenemos y devolvera el kernel. necesitamos que apunte a algo para poder hacer operaciones atomicas sobre ello y como estamos maximizando 
+        //cualquier valor sera mayor o igual que el menor de los enteros entonces no interfiere con los datos que pasamos
         int valorInicial = INT_MIN;
         
+
+
+        //ESTOS SON LOS PRIMEROS 3 SUBAPARTADOS
+
+
+        //Estos son bastante iguales, lo que cambia es el kernel que llamamos pero todos 'hacen lo mismo'
+        //inicializamos el puntero resultado al valor inicial, lanzamos el kernel, esperamos a que acabe, traemos el resultado a CPU e imprimimos
+
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
         reductorMaximalSimple <<<blocksInGrid, threadsInBlock >>> (d_vectorDatos, resultado, tamanno);
         cudaDeviceSynchronize();
         cudaMemcpy(&resultadoAImprimir, resultado, sizeof(int), cudaMemcpyDeviceToHost);
         printf("\n[Maximizacion Simple] %s %d\n", columna, resultadoAImprimir);
 
+        //Aqui introducimos la memoria compartida, le pasamos de tamaño el tamaño del bloque (a ambos subapartados)
 
         cudaMemcpy(resultado, &valorInicial, sizeof(int), cudaMemcpyHostToDevice);
         reductorMaximalBasico<<<blocksInGrid, threadsInBlock, threadsInBlock.x*sizeof(int)>>> (d_vectorDatos, resultado, tamanno);
@@ -820,18 +854,30 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
 
 
-        int* arrInicial = new int[blocksInGrid.x];
-        for (int i = 0; i < blocksInGrid.x; i++) arrInicial[i] = valorInicial;
+        //ESTE ES EL ULTIMO SUBAPARTADO
 
+
+
+        //aqui es donde se complica la cosa, vamos a ir poco a poco
+        //inicializamos el puntero al valor inicial de antes, este sera el del resultado por el momento, para las siguientes iteraciones se usaran los que salgan de resultado del kernel
+        int* arrInicial = new int[blocksInGrid.x];
+        for (int i = 0; i < blocksInGrid.x; i++) { arrInicial[i] = valorInicial; }
+
+
+        //pasamos el array al resultado y lanzamos el kernel
         cudaMemcpy(resultadoReductor, arrInicial, blocksInGrid.x * sizeof(int), cudaMemcpyHostToDevice);
         reductorMaximalReductor <<<blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>> (d_vectorDatos, resultadoReductor, tamanno);
         cudaDeviceSynchronize();
+        //importante el resize porque si no puede ser que no haya espacio suficiente (aqui un poco mas complicado que pase pero mas adelante crucial)
         resultadoReduccionVector.resize(blocksInGrid.x);
+        //nos traemos a cpu el resultado y liberamos el puntero porque no lo necesitamos mas hasta luego
         cudaMemcpy(resultadoReduccionVector.data(), resultadoReductor, blocksInGrid.x * sizeof(int), cudaMemcpyDeviceToHost);
         cudaFree(resultadoReductor);
         
+        //aqui esta el bucle que nos dice que si el resultado es de mas de 10 elementos seguimos lanzando kernels para que la GPU procese casi todo
         while (resultadoReduccionVector.size() > 10) {
         
+            //definimos el tamaño del problema otra vez, ahora sera el tamaño del resultado que es lo que vamos a pasar al puntero del kernel
             dim3 blocksInGrid;
             dim3 threadsInBlock;
             size_t espacio = resultadoReduccionVector.size() * sizeof(int);
@@ -839,29 +885,38 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
             configurarKernel(espacio, blocksInGrid, threadsInBlock);
 
+            //alocamos y copiamos el nuevo resultado (no es lo del kernel anterior, es el resultado que hay que pasarle al kernel para que lo guarde ahi)
             cudaMalloc(&resultadoReductor, blocksInGrid.x * sizeof(int));
             cudaMemcpy(resultadoReductor, &valorInicial, blocksInGrid.x * sizeof(int), cudaMemcpyHostToDevice);
 
+            //aqui el puntero nuevos datos es el que guardara el resultado de la iteracion anterior para poder pasarlo a kernel
             int* d_nuevosDatos;
             cudaMalloc(&d_nuevosDatos, espacio);
             cudaMemcpy(d_nuevosDatos, resultadoReduccionVector.data(), espacio, cudaMemcpyHostToDevice);
 
-
+            //lamzamos kernel y esperamos a que acabe (tamanno no es el de antes, es el nuevo que hemos definido con el tamaño de los resultados)
             reductorMaximalReductor <<< blocksInGrid, threadsInBlock, threadsInBlock.x * sizeof(int) >>> (d_nuevosDatos, resultadoReductor, tamanno);
             cudaDeviceSynchronize();
 
+            //aqui es donde es critico el resize porque si no puede pasar lo de que no haya suficiente espacio. copiamos el resultado en resultadoReduccionVector
             resultadoReduccionVector.resize(blocksInGrid.x);
             cudaMemcpy(resultadoReduccionVector.data(), resultadoReductor, blocksInGrid.x * sizeof(int), cudaMemcpyDeviceToHost);
 
+            //liberamos lo que no vamos a usar mas esta iteraicion y repetimos si el tamaño del resultado es mayor que 10
             cudaFree(resultadoReductor);
             cudaFree(d_nuevosDatos);
         
 
         }
 
-        
+
+        //si hemos llegado aquie es que el tamaño del resultado es menor que 10, vamos a ver que hacemos
+
+        //tomamos como resultado la primera posicion del vector que sabemos que siempre existira
         int resultadoFinal = resultadoReduccionVector[0];
 
+
+        //recorremos el vector paso a paso y comparamos el resultado con la posicion siguiente a la que estamos, si es mayor la dejamos en el resultado
         for (int i = 0; i < resultadoReduccionVector.size(); i++) {
 
             if (i < resultadoReduccionVector.size() - 1 ) {
@@ -872,12 +927,14 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 
         }
 
-
+        //imprimimos el resultado
         printf("\n[Maximizacion Reduccion] %s %d\n", columna, resultadoFinal);
 
     }
     else {
 
+
+        //este es identico al de arriba cambiando que kernels lanzamos y que el valor inicial es el maximo porque es el neutro en una minimizacion
 
         int valorInicial = INT_MAX;
         
@@ -1265,8 +1322,30 @@ int main()
         case 1: {
 
             float umbral;
-            cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
-            cin >> umbral;
+            bool opcionNoValida = true;
+            
+            while (opcionNoValida) {
+
+
+                cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
+                cin >> umbral;
+
+
+                if (!cin) { //Que me han dado un float bien, que no salgo y reinicio el cin
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+                opcionNoValida = false;
+
+            
+            }
+
 
             // Copiar a GPU
             float* d_depDelay;
@@ -1298,9 +1377,26 @@ int main()
 
         case 2: {
 
+            bool opcionNoValida = true;
             float umbral;
             cout << "Introduzca el umbral (positivo para retrasos, negativo para adelantos): ";
             cin >> umbral;
+
+            while (opcionNoValida) {
+            
+                if (!cin) { //Que me han dado un float bien, que no salgo y reinicio el cin
+
+                    cout << "\nOpcion no valida\n";
+                    //Para el caso de que no pusiera un numero
+                    cin.clear(); //Limpia errores
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n'); //Descarta la linea que ha introducido por consola,da igual como de larga sea
+                    continue;
+
+                }
+
+                opcionNoValida = false;
+            
+            }
 
             int N = arrDelay.size();
 
@@ -1397,13 +1493,17 @@ int main()
         case 3: {
 
 
+            //En este case vamos a hacer el ejercicio 3. El objetivo de este trozo de codigo es inicializar un lanzador en CPU que nos lanzara el kernel.
+
+
+            //Definimos variables que usaremos
             int selector1;
             int selector2;
             bool opcionInvalida = true;
 
             while (opcionInvalida) {
            
-
+                //Le damos al usuario las opciones, hasta que no elija una valida o salga este bucle se repetira por la variable opcionInvalida
                 cout << "\n---SELECTOR DE REDUCCIONES---\n";
                 cout << "1) Retraso de Salida.\n";
                 cout << "2) Retraso de Llegada.\n";
@@ -1417,7 +1517,7 @@ int main()
                 cin >> selector1; //Elijo opcion
                 cout << "\n";
 
-
+                //validamos lo que nos ha pedido el usario
                 if (!cin) { //Si he elegido un entero me salto esto, si no limpiamos el cin y reiniciamos el bucle
 
                     cout << "\nOpcion no valida\n";
@@ -1438,7 +1538,7 @@ int main()
 
 
 
-
+                //Le preguntamos al usuario que operacion quiere hacer
                 cout << "1) Maximizar.\n";
                 cout << "2) Minimizar.\n";
                 cout << "3) Salir.\n\n";
@@ -1448,7 +1548,7 @@ int main()
                 cin >> selector2; //Pregunto que quiere el usuario
                 cout << "\n";
 
-
+                //validamos que nos haya pasado un entero
                 if (!cin) { //Que me han dado un entero bien, que no salgo y reinicio el cin
 
                     cout << "\nOpcion no valida\n";
@@ -1468,10 +1568,10 @@ int main()
                 }
                 
                 
-
+                //validamos si el entero es valido, no nos interesan negaticos ni mayores que 6 para la primera opcion ni cosas distintas de 1 o 2 en la segunda (si pidio salir ya salio)
                 if ((selector1 > 0 && selector1 < 6) && (selector2 == 1 || selector2 == 2)) { //Que la opcion es una de las del selector, perfecto, que no, salgo.
 
-                    
+                    //lanzamos el lanzador y salimos del while
                     lanzadorReductor(selector1, selector2, depDelay, arrDelay, weatherDelay, depTime, arrTime);
                     
                     opcionInvalida = false;
@@ -1495,11 +1595,15 @@ int main()
 
         case 4: {
             
+            //El obejtivo de este trocito es inicializar el lanzador con los datos que necesite y hacer de interfaz para el usuario
 
+            //aqui declaro lo que voy a ir usando
             int selector;
             int selector2;
             bool opcionInvalida = true;
 
+
+            //es un bucle muy sencillo que simplemente le pide al usario que elija entre las 3 y comprueba que la opcion sea valida, lo mismo hace el siguiente bucle
             while (opcionInvalida) {
             
 
@@ -1513,7 +1617,7 @@ int main()
                 cout << "\n";
 
 
-                if (!cin || selector < 0) { //Que me han dado un entero bien, que no salgo y reinicio el cin
+                if (!cin || selector < 0 || selector > 3) { //Que me han dado un entero bien, que no salgo y reinicio el cin
 
                     cout << "\nOpcion no valida\n";
                     //Para el caso de que no pusiera un numero
@@ -1527,7 +1631,9 @@ int main()
 
             
             }
+            
 
+            //aqui si se ha elegido la 3 antes
 
             if (selector == 3) { //Que me piden salir, salgo
 
@@ -1563,6 +1669,8 @@ int main()
 
             }
 
+
+            //y ya lanzamos el lanzador, la logica de este ejercicio mas adelante
             
             lanzadorHistograma(selector, selector2, originAirport, originID, destAirport, destID);
 
@@ -1575,7 +1683,6 @@ int main()
             ejecutar = false;   //Terminamos el bucle
             break;
 
-        //SI SE QUIERE DAR LA OPCION DE CAMBIAR LA RUTA DE ACCESO BASTARIA CON AÑADIR OTRO CASE MAS
 
         default:
             cout << "\nOpcion no valida\n";
