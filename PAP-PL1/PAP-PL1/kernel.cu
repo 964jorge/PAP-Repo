@@ -1040,12 +1040,15 @@ void lanzadorReductor(int opcion1, int opcion2, vector<float>& depDelay, vector<
 __global__ void contarOcurrencias(int* datos, int tamannoSolucion, int tamannoDatos, int* resultado) {
 
 
+    //aqui inicalizamos la memoria compartida
     extern __shared__ int datosEnBloque[];
 
     int idx = threadIdx.x + blockIdx.x * blockDim.x;
 
     
-
+    //este es un poco raro, pero para inicializar toda la memoria en vez de que lo haga un unico hilo lo van a hacer todos.
+    //como sabemos que no se solapan? porque cada uno solo hace su posicion + los multiplos del tamaño de bloque. ninguno llega a coincidir y todas posiciones se cubren
+    //inicializamos a 0 para poder sumar de uno en uno coincidencias
     for (int i = threadIdx.x; i < tamannoSolucion; i = i + blockDim.x) {
 
         datosEnBloque[i] = 0;
@@ -1057,7 +1060,8 @@ __global__ void contarOcurrencias(int* datos, int tamannoSolucion, int tamannoDa
     __syncthreads();
 
     
-
+    //si el idx del hilo es menor que el tamaño de datos miras que hay en datos[idx]
+    //esa informacion la usas de posicion para sumar uno atomicamente a la posicion de la memoria compartida que dicen los datos
     if (idx < tamannoDatos){
     
 
@@ -1068,6 +1072,10 @@ __global__ void contarOcurrencias(int* datos, int tamannoSolucion, int tamannoDa
 
     __syncthreads();
 
+    //cuando todos los hilos han acabado de hacer el histograma local pasamos los datos al resultado
+    //igual que antes cada hilo mira su posicion y añade atomicamente los datos del bloque a la solucion 
+    //(en todos los histogramas locales la posicion 0 es el mismo id por ejemplo) por eso todos los hilos 0 de todos los bloques suman ahi
+    //ademas el for incrementa con el tamaño de bloque para que dentro de un mismo bloque los hilos no se pisen
     for (int i = threadIdx.x; i < tamannoSolucion; i = i + blockDim.x) {
 
 
@@ -1077,6 +1085,8 @@ __global__ void contarOcurrencias(int* datos, int tamannoSolucion, int tamannoDa
 
     }
 
+
+    //luego esperamos a todos los hilos y hemos terminado
     __syncthreads();
     
 
@@ -1090,7 +1100,35 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
 
 
-    //He comprobado que estan todos los datos asi que no va a haber problema con el bucle
+    /*
+    
+    antes de empezar con el codigo vamos a hablar de la logica. el objetivo es contar ocurrencias. como lo vamos a hacer?
+
+    vamos a mapear cada id con su string, todos, salida y llegada, luego vamos a mapear los ids con un entero unico. para que?
+    vamos a suponer que tenemos estos ids "a, b, c, d, e, c, f" con esto no podemos trabajar bien, pero si cada uno fuese un numero entero
+    tendriamos un mapa "a -> 0, b -> 1, c -> 2, d -> 3, e -> 4, f -> 5" y podemos transformar los ids en enteros (no necesariamente ordenados)
+    para tener algo asi "0, 1, 2, 3, 4, 2, 5" vamos a trabajar entonces con estos datos. por que?
+
+    porque cada hilo pued ver ese dato y asociarlo a una posicion unica de un array. entonces cada posicion esta linkeada con un unico id y el elemento de esa posicion puede ser lo que sea
+    como por ejemplo la cantidad de veces que aparece. por que lo hacemos asi?
+
+    porque en gpu no podemos trabajar con listas de tuplas. y aqui estamos linealizando una lista de tuplas con 2 mapas.
+    
+    luego cada bloque puede hacer que cada hilo se mire a si mismo y sume 1 a la posicion de los resultados en memoria compartida que coincida con su dato utilizando asi la GPU de manera eficiente a coste de mapear
+
+    despues de tener histogramas parciales en memoria compartida la idea es juntarlos todos en el resultado global e imprimir lo que necesitemos
+
+    TODO ESTO CON MATICES ADICIONALES QUE VEREMOS SEGUN MIREMOS EL CODIGO
+
+
+    
+    */
+
+
+
+    //He comprobado que estan todos los datos asi que no va a haber problema con el bucle porque al tener todos el mismo tamaño no se va a desbordar por lado ninguno
+
+    //aqui declaramos los dos primeros mapas (luego habra otro para desindexar), punteros para la GPU y el resultado que traeremos a CPU
     unordered_map<int, string> mapaIdsString;
     unordered_map<int, int> mapaIdsIndice;
     int* resultado;
@@ -1100,6 +1138,8 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
     vector<int> resultadoKernel;
 
 
+
+    //mapeamos los datos de ID a Codigo de aeropuerto
     int i = 0;
 
     while (i < originAirport.size()) {
@@ -1112,6 +1152,9 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     
     }
+
+
+    //mapeamos de ID a indice
 
     int j = 0;
     int k = 0;
@@ -1138,6 +1181,7 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
     }
 
 
+    //configuramos el kernel
 
     dim3 blocksInGrid;
     dim3 threadsInBlock;
@@ -1145,13 +1189,17 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     configurarKernel(espacio, blocksInGrid, threadsInBlock);
 
+    //alocamos espacio para el resultado. tiene ese tamaño porque vamos a tener una posicion por indice (equivalente a una posicion por id unico o aeropuerto)
     cudaMalloc(&resultado, mapaIdsIndice.size() * sizeof(int));
     
 
+    //este if nos dice si usamos los de origen o los de destino, ambos tienen la misma logica
     if (opcion1 == 1) {
 
+        //hacemos una copia de los datos antes de modificarlos porque si ejecutasemos esto mas de una vez sin volver a hacer carga los datos serian los indices y no queremos eso
         vector<int> originIDCopia = originID;
 
+        //transformamos cada id a su indice usando el mapa, no hay proteccion ninguna porque sabemos que todo lo que busquemos esta en el mapa
         for (int i = 0; i < originID.size(); i++) {
 
             auto it = mapaIdsIndice.find(originID[i]);
@@ -1160,12 +1208,14 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
         }
 
-
+        //alocamos y compiamos la COPIA de los datos, si copiasemos los datos no habriamos hecho nada
         cudaMalloc(&d_originID, originID.size() * sizeof(int));
         cudaMemcpy(d_originID, originIDCopia.data(), originID.size() * sizeof(int), cudaMemcpyHostToDevice);
 
+        //lanzamos el kernel con memoria compartida = numero de ids distintos
         contarOcurrencias<<<blocksInGrid, threadsInBlock, mapaIdsIndice.size() * sizeof(int) >>>(d_originID, mapaIdsIndice.size(), originID.size(), resultado);
 
+        //luego despues liberamos lo que hemos usado aqui y no necesitamos
         cudaFree(d_originID);
     
     }
@@ -1190,18 +1240,26 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
     
     }
 
-    
+
+     
+    //vamos a traernos los resultados del kernel al vector que teniamos para ello, haciendo el resize primero para darle espacio
     resultadoKernel.resize(mapaIdsIndice.size());
     cudaMemcpy(resultadoKernel.data(), resultado, mapaIdsIndice.size() * sizeof(int), cudaMemcpyDeviceToHost);
 
 
+    //ahora tenemos un vector donde la posicion es el indice asociado al id y lo que hay en la posicion es el numero de ocurrencias
+    //vamos a encontrar el elemento que tiene el maximo
     auto it = max_element(resultadoKernel.begin(), resultadoKernel.end());
 
+    //y copiamos el maximo aqui, le vamos a usar para decidir cuantos # le ponemos a cada aeropuerto cuando lo mostremos
     int max = *it;
 
+    //definimos esto para usarlo en el siguiente while, ahora lo vemos
     int siguienteMaximo = max;
     int posicion = it - resultadoKernel.begin();
 
+
+    //aqui tenemos que mapear al reves, indices a ids para poder buscar los ids mas adelante
     unordered_map<int, int> mapaIndiceIds;
 
     for (auto it = mapaIdsIndice.begin(); it != mapaIdsIndice.end(); ++it) {
@@ -1212,16 +1270,25 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
     
 
+    //aqui es donde se hace el histograma como tal, la opcion2 era la cota que nos daba el usuario entonces no vamos a mostrar cosas menores
+
     while (siguienteMaximo >= opcion2) {
     
-        
+        //tomamos el id y el codigo del aeropuerto del maximo que estamos mirando e imprimimos
         int id = mapaIndiceIds.find(posicion)->second;
         string codAeropuerto = mapaIdsString.find(id)->second;
     
         cout << "El aeropuerto " << codAeropuerto << " con id " << id << " aparece " << siguienteMaximo << " veces. ";
 
-        float asteriscos = ((float)siguienteMaximo / (float)max) * 15;
 
+        int totalAsteriscos = 15;
+        //por que esta conversion es critica?
+        //si dividiesemos normal int/int siempre da entero y como menos el primer maximo todo es < 1 siempre tendriamos 0 asteriscos
+        //al hacer la conversion dejamos los decimales antes de multiplicar, ademas como se va a truncar en el for siguiente le añadimos 0.5f para que redondee, no trunque
+        float asteriscos = (((float)siguienteMaximo / (float)max) * totalAsteriscos) + 0.5f;
+
+
+        //aqui imprimimos tantos asteriscos como hemos calculado
         for (int i = asteriscos; i > 0; i--) {
 
 
@@ -1233,9 +1300,15 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
 
         cout << "\n";
 
-        resultadoKernel[posicion] = 0;
+
+        //importante esta linea porque si no el maximo se repetiria todo el rato si no lo quitamos.
+        //por que -1? porque el usuario puede pedir el 0 de umbral pero no nada negativo. si lo pusiesemos a 0 llegaria un punto donde todo serian maximos y se repetiria indefinidamente
+
+        resultadoKernel[posicion] = -1;
 
 
+
+        //ahora seleccionamos otra maximo nuevo
 
         it = max_element(resultadoKernel.begin(), resultadoKernel.end());
 
@@ -1245,6 +1318,7 @@ void lanzadorHistograma(int opcion1, int opcion2, vector<string>& originAirport,
     
     }
 
+    //para saber que hemos ternminado decimos esto y liberamos resultado
     cout << "Fin de resultados.\n";
 
     cudaFree(resultado);
