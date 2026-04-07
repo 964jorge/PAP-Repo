@@ -1362,7 +1362,7 @@ int main()
 
             vector<float> outDelay(h_contador);
             vector<char> outTail(h_contador * MAX_TAIL_NUM);
-
+            
             cudaMemcpy(outDelay.data(), d_outDelay, h_contador * sizeof(float), cudaMemcpyDeviceToHost);
             cudaMemcpy(outTail.data(), d_outTail, h_contador * MAX_TAIL_NUM, cudaMemcpyDeviceToHost);
 
@@ -1523,17 +1523,17 @@ int main()
 
                 }
 
-
-                if (selector == 3) { //Que me piden salir, salgo
-
-                    opcionInvalida = false;
-                    break;
-
-                }
-
                 break;
 
             
+            }
+
+
+            if (selector == 3) { //Que me piden salir, salgo
+
+                opcionInvalida = false;
+                break;
+
             }
 
             while (opcionInvalida) {
