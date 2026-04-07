@@ -1364,9 +1364,9 @@ int main()
         cout << "\nCargando con ruta por defecto\n";
         //FUNCION DE CARGA CON LA RUTA POR DEFECTO
         //Ruta por defecto Jose Antonio:
-        //leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
+        leerCSV("D:/Fichero PAP/Airline_dataset.csv", arrDelay, depDelay, tailNum, limite);
         //Ruta por defecto Jorge:
-        leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
+        //leerCSV("C:/Users/Jorge/Documents/Airline_dataset.csv", arrDelay, depDelay, weatherDelay, arrTime, depTime, tailNum, originAirport, destAirport, originID, destID, limite);
 
     }
     else
